@@ -1,17 +1,2 @@
 #!/bin/bash
-
-qemu-system-arm   -cpu arm1176   -m 256   -M versatilepb \
-	-no-reboot   -serial stdio   \
-	-append "root=/dev/sda2 panic=1 rw init=/bin/bash loglevel=8 console=ttyAMA0,115200" \
-	-kernel kernel/kernel-qemu-4.4.34-jessie \
-	-net nic -net user,restrict=off,hostfwd=tcp::2222-:22,hostfwd=tcp::22280-:80  \
-	-drive file=$(pwd)/images/hypriotos-rpi-v1.1.3.img,index=0,media=disk,format=raw
-
-# QEMU window (guest) - spawned by previous line
-sed -i -e 's/^/#/' /etc/ld.so.preload
-# TODO: clean this up with a bash var for path
-touch /etc/udev/rules.d/90-qemu.rules
-echo 'KERNEL=="sda", SYMLINK+="mmcblk0"' >> /etc/udev/rules.d/90-qemu.rules
-echo 'KERNEL=="sda?", SYMLINK+="mmcblk0p%n"' >> /etc/udev/rules.d/90-qemu.rules
-echo 'KERNEL=="sda2", SYMLINK+="root"' >> /etc/udev/rules.d/90-qemu.rules
-exit
+$(dirname $0)/hypriot-qemu init=/bin/bash
