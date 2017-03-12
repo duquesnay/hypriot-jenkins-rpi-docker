@@ -1,0 +1,10 @@
+#!/bin/bash
+image=$1
+container-name=$2
+filename=$(basename $1)
+
+container-img=${filename}-${container-name}
+
+mkdir -o /tmp/images
+flash -o -n ${container-name} --output /tmp/images/${container-img}  ${image}
+docker run docker run --privileged=true -v /tmp/images:/usr/rpi/images duquesnay/prepare-hypriot-qemu images/${container-img} 6G
