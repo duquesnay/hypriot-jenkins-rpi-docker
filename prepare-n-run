@@ -1,10 +1,51 @@
 #!/bin/bash
-image=$1
-container-name=$2
-filename=$(basename $1)
+while getopts "k:i:n:s:" opt; do
+  case $opt in
+    i)  image_arg="-i $OPTARG" ; echo image = ${OPTARG} ;;
+    k)  kernel_arg="-k $OPTARG" ; echo kernel = ${OPTARG} ;;
+	s)	size_arg="-s $OPTARG" ; echo size = ${OPTARG} ;;
+	n)  hostname_arg="-n $OPTARG" ; echo hostname = ${OPTARG} ;;
+    \? ) echo "Unknown option: -$OPTARG" >&2; exit 1;;
+    :  ) echo "Missing option argument for -$OPTARG" >&2; exit 1;;
+    *  ) echo "Unimplemented option: -$OPTARG" >&2; exit 1;;
+    esac
+done
 
-container-img=${filename}-${container-name}
+#shift $(($OPTIND - 1))
 
-mkdir -o /tmp/images
-flash -o -n ${container-name} --output /tmp/images/${container-img}  ${image}
-docker run docker run --privileged=true -v /tmp/images:/usr/rpi/images duquesnay/prepare-hypriot-qemu images/${container-img} 6G
+# delegating parameter validation to sub scripts
+
+# if [ "$image" == "" ] #&& [[ -d $1 ]]
+# then
+#     echo "-i must be used to set which image to run" >&2
+#     exit 1
+# fi
+
+
+# if [[ "$hostname" == "" ]]
+# then
+#     echo "-n must be used to define container name" >&2
+#     exit 1
+# fi
+
+# if [[ "$kernel" == "" ]]
+# then
+#     echo "-k must be used to define kernel to run image" >&2
+#     exit 1
+# fi
+
+# if [ ! -f ${image} ]; then
+# 	echo "Image file \"$image\" does not exist"
+# 	exit 2
+# fi
+
+# if [ ! -f ${kernel} ]; then
+# 	echo "Kernel file \"$kernel\" does not exist"
+# 	exit 2
+# fi
+
+cd $(dirname $0)
+mkdir -p /tmp/images
+
+container_img=$(/usr/rpi/scripts/prepare-hypriot-qemu/prepare_for_qemu -t /tmp/images/ ${hostname_arg} ${image_arg} ${size_arg}) \
+	&& ./emulate-hypriot-nohead -i ${container_img} ${kernel_arg}
