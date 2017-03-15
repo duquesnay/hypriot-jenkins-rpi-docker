@@ -1,0 +1,45 @@
+#!/bin/bash
+
+while getopts "k:i:" opt; do
+  case $opt in
+    i)  image="$OPTARG" ; echo image = ${image} ;;
+    k)  kernel="$OPTARG" ; echo kernel = ${kernel} ;;
+    \? ) echo "Unknown option: -$OPTARG" >&2; exit 1;;
+    :  ) echo "Missing option argument for -$OPTARG" >&2; exit 1;;
+    *  ) echo "Unimplemented option: -$OPTARG" >&2; exit 1;;
+    esac
+done
+
+#shift $(($OPTIND - 1))
+
+if [ "$image" == "" ] #&& [[ -d $1 ]]
+then
+    echo "-i must be used to set which image to run" >&2
+    exit 1
+fi
+
+if [[ "$kernel" == "" ]]
+then
+    echo "-k must be used to define kernel to run image" >&2
+    exit 1
+fi
+
+if [ ! -f ${image} ]; then
+	echo "Image file \"$image\" does not exist"
+	exit 2
+fi
+
+if [ ! -f ${kernel} ]; then
+	echo "Kernel file \"$kernel\" does not exist"
+	exit 2
+fi
+echo starting image ${image} with kernel ${kernel}
+image_dir=$(dirname $(realpath ${image}))
+kernel_dir=$(dirname $(realpath ${kernel}))
+qemu-system-arm   \
+		-cpu arm1176   -m 256   -M versatilepb -no-reboot  \
+		-append "root=/dev/sda2 panic=1 rw loglevel=8 console=ttyAMA0,115200" \
+		-kernel "${kernel}" \
+		-drive "file=${image}",index=0,media=disk,format=raw \
+		-net nic -net user,restrict=off,hostfwd=tcp::10022-:22 \
+		-nographic
