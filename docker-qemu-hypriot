@@ -1,14 +1,20 @@
 #!/bin/bash
 image="$1"
-docker run -it --rm --privileged=true \
-	-v $(pwd)/images:/usr/rpi/images -w /usr/rpi \
-	--detach \
+container_name="$2"
+image_dir=$(dirname $(realpath ${image}))
+kernel_dir=$(pwd)/kernel
+
+image_dir=$(cd ${image_dir};pwd)
+echo image dir \= ${image_dir}
+set -x
+docker run --name="${container_name}" --detach -it --privileged=true \
+	-v ${image_dir}:/usr/rpi/images \
+	-v ${kernel_dir}:/usr/rpi/kernel \
 	ryankurte/docker-rpi-emu \
-	/bin/bash -c \
-	'qemu-system-arm   \
+	qemu-system-arm   \
 		-cpu arm1176   -m 256   -M versatilepb -no-reboot  \
 		-append "root=/dev/sda2 panic=1 rw loglevel=8 console=ttyAMA0,115200" \
-		-kernel images/kernel-qemu-4.4.34-jessie \
-		-drive file=/usr/rpi/images/'"${image}"',index=0,media=disk,format=raw \
+		-kernel /usr/rpi/kernel/kernel-qemu-4.4.34-jessie \
+		-drive file=/usr/rpi/images/"$(basename ${image})",index=0,media=disk,format=raw \
 		-net nic -net user,restrict=off \
-		-nographic'
+		-nographic
