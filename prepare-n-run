@@ -49,6 +49,6 @@ done
 
 cd $(dirname $0)
 mkdir -p /tmp/images
-
-container_img=$($(dirname $0)/scripts/prepare-hypriot-qemu/prepare_for_qemu ${target_dir_arg} ${hostname_arg} ${image_arg} ${size_arg} ${overwrite_arg})
+set set -x 
+container_img=$($(dirname $0)/scripts/prepare-hypriot-qemu/prepare_for_qemu ${target_dir_arg} ${hostname_arg} ${image_arg} ${size_arg} ${overwrite_arg} | tail -1)
 ./emulate-hypriot-nohead -i ${container_img} ${kernel_arg}
