@@ -1,10 +1,13 @@
 #!/bin/bash
-while getopts "k:i:n:s:" opt; do
+
+while getopts "k:i:n:s:t:x" opt; do
   case $opt in
-    i)  image_arg="-i $OPTARG" ; echo image = ${OPTARG} ;;
+    i)  image_arg="-i $OPTARG" ; image="$OPTARG" ; echo image = ${OPTARG} ;;
     k)  kernel_arg="-k $OPTARG" ; echo kernel = ${OPTARG} ;;
 	s)	size_arg="-s $OPTARG" ; echo size = ${OPTARG} ;;
 	n)  hostname_arg="-n $OPTARG" ; echo hostname = ${OPTARG} ;;
+	t)  target_dir_arg="-t $OPTARG" ; echo target dir = ${OPTARG} ;;
+	x)  overwrite_arg="-x" ; echo overwrite target image if needed ;;
     \? ) echo "Unknown option: -$OPTARG" >&2; exit 1;;
     :  ) echo "Missing option argument for -$OPTARG" >&2; exit 1;;
     *  ) echo "Unimplemented option: -$OPTARG" >&2; exit 1;;
@@ -47,5 +50,5 @@ done
 cd $(dirname $0)
 mkdir -p /tmp/images
 
-container_img=$(/usr/rpi/scripts/prepare-hypriot-qemu/prepare_for_qemu -t /tmp/images/ ${hostname_arg} ${image_arg} ${size_arg}) \
-	&& ./emulate-hypriot-nohead -i ${container_img} ${kernel_arg}
+container_img=$($(dirname $0)/scripts/prepare-hypriot-qemu/prepare_for_qemu ${target_dir_arg} ${hostname_arg} ${image_arg} ${size_arg} ${overwrite_arg})
+./emulate-hypriot-nohead -i ${container_img} ${kernel_arg}
